@@ -79,6 +79,7 @@ The objective of this project is to create a web service similar to "Imgur," whe
 ### Models and DTOs
 
 1. **User**
+   - `id`: Integer (primary key)
    - `username`: String
    - `password`: String (hashed)
    - `email`: String
@@ -87,20 +88,22 @@ The objective of this project is to create a web service similar to "Imgur," whe
    - `id`: Integer (primary key)
    - `title`: String
    - `image_path`: String
-   - `user`: ForeignKey (User)
+   - `postId`: ForeignKey (Post)
 
 3. **Post**
    - `id`: Integer (primary key)
+   - `title`: String
+   - `description`: String 
    - `images`: ManyToManyField (Image)
-   - `user`: ForeignKey (User)
    - `upvotes`: Integer (default=0)
    - `downvotes`: Integer (default=0)
+   - `userId`: ForeignKey (User)
 
 4. **Vote**
    - `id`: Integer (primary key)
-   - `user`: ForeignKey (User)
-   - `post`: ForeignKey (Post)
-   - `vote_type`: String (choices: 'upvote', 'downvote')
+   - `userId`: ForeignKey (User)
+   - `postId`: ForeignKey (Post)
+   - `vote_type`: String (choices: '1', '-1')
 
 ### DTOs
 
