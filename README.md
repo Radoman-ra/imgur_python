@@ -7,31 +7,38 @@ The objective of this project is to create a web service similar to "Imgur," whe
 ## Functional Requirements
 
 ### User Authentication
+
 - Users should be able to register and log in using JWT authentication.
 - Authentication should be required for posting images, voting, and accessing user-specific pages.
 
 ### Image Uploads
+
 - Authenticated users can upload 1-N images per post, each with a title.
 - Posts should be displayed on a main page with options to choose the number of posts displayed (25, 50, 100).
 
 ### Voting System
+
 - Authenticated users can upvote or downvote posts on the main page.
 - Votes should be unique per user per post.
 
 ### User Profiles
+
 - Authenticated users can view a list of their own posts and the upvote/downvote counts for each.
 - Users can post images anonymously.
 
 ### Post Details
+
 - Each post should have its own dedicated page accessible via a unique URL (postId).
 
 ## Technical Specifications
 
 ### Prerequisites
+
 - Python virtual environment (`venv`)
 - Decorators
 
 ### Tech Stack
+
 - Django (backend framework)
 - Swagger (API documentation)
 - MySQL (database)
@@ -93,7 +100,7 @@ The objective of this project is to create a web service similar to "Imgur," whe
 3. **Post**
    - `id`: Integer (primary key)
    - `title`: String
-   - `description`: String 
+   - `description`: String
    - `images`: ManyToManyField (Image)
    - `upvotes`: Integer (default=0)
    - `downvotes`: Integer (default=0)
@@ -128,6 +135,7 @@ The objective of this project is to create a web service similar to "Imgur," whe
    - `vote_type`: String
 
 ### API Endpoints
+
 - `/api/auth/register`: POST - Register a new user.
 - `/api/auth/login`: POST - Login and receive JWT token.
 - `/api/images/upload`: POST - Upload images.
