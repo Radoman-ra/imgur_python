@@ -1,24 +1,17 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.12-slim
+# Use the official Python image
+FROM python:3.12.4
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Set the working directory in thdocker-compose up --builde container
+WORKDIR /code
 
-# Create a directory for the app
-WORKDIR /app
-
-# Copy the requirements file to the working directory
-COPY requirements.txt /app/
+# Copy the requirements file into the container
+COPY requirements.txt /code/
 
 # Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Copy the project files to the working directory
-COPY . /app/
+# Copy the current directory contents into the container at /code
+COPY . /code/
 
-# Expose the port the app runs on
+# Expose port 8000 to be accessible from the host
 EXPOSE 8000
-
-# Command to run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imgur Clone</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .navbar {
+            background-color: #2f2f2f;
+        }
+        .navbar-brand {
+            color: #fff;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .card img {
+            max-height: 300px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">Imgur Clone</a>
+        <div>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit">Log Out</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}"><button>Log In</button></a>
+                <a href="{% url 'register' %}"><button>Register</button></a>
+            {% endif %}
+        </div>
+    </body>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row">
+                    {% for image in images %}
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ image.title }}</h5>
+                                <p class="card-text">{{ image.description }}</p>
+                                <p class="card-text"><small class="text-muted">Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</small></p>
+                                {% comment %} <p>Upvotes: {{ image.upvote_count }}</p>
+                                <p>Downvotes: {{ image.downvote_count }}</p> {% endcomment %}
+
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="col-md-4">
+                <h2>Upload Image</h2>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+            {% else %}
+            <p>Please <a href="{% url 'login' %}">login</a> to upload images.</p>
+         {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
