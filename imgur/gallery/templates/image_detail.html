@@ -1,0 +1,46 @@
+<!-- image_detail.html -->
+<div class="modal-header">
+  <h5 class="modal-title">{{ image.title }}</h5>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <img src="{{ image.image.url }}" class="img-fluid" alt="{{ image.title }}" />
+  <p>{{ image.description }}</p>
+  <p>Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</p>
+  <p>Votes: {{ image.upvotes }} - {{ image.downvotes }}</p>
+  {% if request.user == image.user %}
+  <form id="update-form">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        value="{{ image.title }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea class="form-control" id="description">
+{{ image.description }}</textarea
+      >
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary"
+      onclick="updateImage({{ image.id }})"
+    >
+      Save changes
+    </button>
+    <button
+      type="button"
+      class="btn btn-danger"
+      onclick="deleteImage({{ image.id }})"
+    >
+      Delete
+    </button>
+  </form>
+  {% endif %}
+</div>

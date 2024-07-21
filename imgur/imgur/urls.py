@@ -9,8 +9,12 @@ from gallery.views import (
     login_view,
     home,
     logout_view,
-    # upvote_post,
-    # downvote_post,
+    upvote_image,
+    downvote_image,
+    image_detail,
+    delete_image,
+    update_image,
+    profile,
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -46,6 +50,10 @@ urlpatterns = [
     path("accounts/login/", login_view, name="login"),
     path("accounts/logout/", logout_view, name="logout"),
     path("", home, name="home"),
-    # path("post/<int:postId>/upvote/", upvote_post, name="upvote_post"),
-    # path("post/<int:postId>/downvote/", downvote_post, name="downvote_post"),
+    path("upvote/<int:image_id>/", upvote_image, name="upvote-image"),
+    path("downvote/<int:image_id>/", downvote_image, name="downvote-image"),
+    path("image/<int:image_id>/", image_detail, name="image-detail"),
+    path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
+    path("image/<int:image_id>/update/", update_image, name="update-image"),
+    path("profile/", profile, name="profile"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -7,12 +7,11 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .forms import UserRegistrationForm
 from django.contrib.auth.decorators import login_required
-from .models import (
-    Image,
-    # Post,
-    # Vote
-)
+from .models import Image, Vote
 from .forms import ImageUploadForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 
 class HelloWorld(APIView):
@@ -64,15 +63,6 @@ def home(request):
 
     images = Image.objects.all().order_by("-uploaded_at")
 
-    # # Prepare votes data
-    # for image in images:
-    #     image.upvote_count = Vote.objects.filter(
-    #         post=image.post, vote_type="upvote"
-    #     ).count()
-    #     image.downvote_count = Vote.objects.filter(
-    #         post=image.post, vote_type="downvote"
-    #     ).count()
-
     return render(request, "home.html", {"images": images, "form": form})
 
 
@@ -81,41 +71,94 @@ def logout_view(request):
     return redirect("home")
 
 
-# @login_required
-# def upvote_post(request, postId):
-#     post = get_object_or_404(Post, id=postId)
-#     existing_vote = Vote.objects.filter(user=request.user, post=post).first()
+@login_required
+def upvote_image(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    vote, created = Vote.objects.get_or_create(
+        user=request.user, image=image, defaults={"vote": Vote.UPVOTE}
+    )
 
-#     if existing_vote:
-#         if existing_vote.vote_type == "upvote":
-#             messages.info(request, "You've already upvoted this post.")
-#             return redirect("post_detail", postId=postId)
-#         elif existing_vote.vote_type == "downvote":
-#             existing_vote.delete()  # Remove the downvote
-#             Vote.objects.create(user=request.user, post=post, vote_type="upvote")
-#             messages.success(request, "You have upvoted this post.")
-#             return redirect("post_detail", postId=postId)
-#     else:
-#         Vote.objects.create(user=request.user, post=post, vote_type="upvote")
-#         messages.success(request, "You have upvoted this post.")
-#         return redirect("post_detail", postId=postId)
+    if not created:
+        if vote.vote != Vote.UPVOTE:
+            image.downvotes -= 1
+            image.upvotes += 1
+            vote.vote = Vote.UPVOTE
+            vote.save()
+        else:
+            return JsonResponse(
+                {"error": "You have already upvoted this image"}, status=400
+            )
+    else:
+        image.upvotes += 1
+
+    image.save()
+    return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
 
 
-# @login_required
-# def downvote_post(request, postId):
-#     post = get_object_or_404(Post, id=postId)
-#     existing_vote = Vote.objects.filter(user=request.user, post=post).first()
+@login_required
+def downvote_image(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    vote, created = Vote.objects.get_or_create(
+        user=request.user, image=image, defaults={"vote": Vote.DOWNVOTE}
+    )
 
-#     if existing_vote:
-#         if existing_vote.vote_type == "downvote":
-#             messages.info(request, "You've already downvoted this post.")
-#             return redirect("post_detail", postId=postId)
-#         elif existing_vote.vote_type == "upvote":
-#             existing_vote.delete()  # Remove the upvote
-#             Vote.objects.create(user=request.user, post=post, vote_type="downvote")
-#             messages.success(request, "You have downvoted this post.")
-#             return redirect("post_detail", postId=postId)
-#     else:
-#         Vote.objects.create(user=request.user, post=post, vote_type="downvote")
-#         messages.success(request, "You have downvoted this post.")
-#         return redirect("post_detail", postId=postId)
+    if not created:
+        if vote.vote != Vote.DOWNVOTE:
+            image.upvotes -= 1
+            image.downvotes += 1
+            vote.vote = Vote.DOWNVOTE
+            vote.save()
+        else:
+            return JsonResponse(
+                {"error": "You have already downvoted this image"}, status=400
+            )
+    else:
+        image.downvotes += 1
+
+    image.save()
+    return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def delete_image(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    if request.user == image.user:
+        image.delete()
+        return JsonResponse({"success": True})
+    return JsonResponse(
+        {"error": "You do not have permission to delete this image."}, status=403
+    )
+
+
+def image_detail(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    return render(request, "image_detail.html", {"image": image})
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def update_image(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    if request.user == image.user:
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        if title:
+            image.title = title
+        if description:
+            image.description = description
+        image.save()
+        return JsonResponse(
+            {"success": True, "title": image.title, "description": image.description}
+        )
+    return JsonResponse(
+        {"error": "You do not have permission to update this image."}, status=403
+    )
+
+
+@login_required
+def profile(request):
+    user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
+    return render(request, "profile.html", {"user_images": user_images})
