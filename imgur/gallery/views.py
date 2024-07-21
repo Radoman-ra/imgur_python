@@ -14,11 +14,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 
-class HelloWorld(APIView):
-    def get(self, request):
-        return Response({"message": "Hello, world!"}, status=status.HTTP_200_OK)
-
-
 def register(request):
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
