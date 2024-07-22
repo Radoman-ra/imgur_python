@@ -70,9 +70,11 @@ def upvote_image(request, image_id):
         return JsonResponse({"error": "You cannot upvote your own image"}, status=400)
 
     vote, created = Vote.objects.get_or_create(user=request.user, image=image)
+    print(created)
     if created:
         image.upvotes += 1
         vote.vote = Vote.UPVOTE
+        vote.save()
     else:
         if vote.vote == Vote.UPVOTE:
             image.upvotes -= 1
@@ -99,6 +101,7 @@ def downvote_image(request, image_id):
     if created:
         image.downvotes += 1
         vote.vote = Vote.DOWNVOTE
+        vote.save()
     else:
         if vote.vote == Vote.DOWNVOTE:
             image.downvotes -= 1

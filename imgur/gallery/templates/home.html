@@ -74,10 +74,11 @@
                                         on {{ image.uploaded_at }}</small>
                                 </p>
                                 <p>
-                                    Votes:
+                                    Votes: {{image.user_vote_status}}
                                     <span id="votes-{{ image.id }}">{{ image.upvotes }}-{{ image.downvotes }}</span>
                                 </p>
                                 <button class="btn btn-success {% if image.user == user %}btn-disabled{% endif %}" onclick="upvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Upvote</button>
+
                                 <button class="btn btn-danger {% if image.user == user %}btn-disabled{% endif %}" onclick="downvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Downvote</button>
                                 <p class="error" id="error-{{ image.id }}"></p>
                             </div>
@@ -116,14 +117,28 @@
 <script>
     var csrfToken = "{{ csrf_token }}";
 
+    function openImageModal(cardElement) {
+        var imageId = $(cardElement).data('image-id');
+        $.ajax({
+            url: "{% url 'image-detail' 0 %}".replace("0", imageId),
+            success: function (data) {
+                $("#modal-content").html(data);
+                $("#imageModal").modal("show");
+            },
+            error: function () {
+                alert("Failed to load image details.");
+            }
+        });
+    }
+
     function upvote(event, imageId) {
         event.stopPropagation();
         var button = $(event.target);
-        var voteStatus = button.data('vote-status');
+        {% comment %} var voteStatus = button.data('vote-status'); {% endcomment %}
 
-        if (button.hasClass('btn-disabled') || voteStatus === 'none') {
+        {% comment %} if (button.hasClass('btn-disabled') || voteStatus === 'none') {
             return;
-        }
+        } {% endcomment %}
 
         $.ajax({
             url: "{% url 'upvote-image' 0 %}".replace("0", imageId),
@@ -133,7 +148,7 @@
             },
             success: function (data) {
                 $("#votes-" + imageId).text(data.upvotes + "-" + data.downvotes);
-                button.data('vote-status', (voteStatus === 'upvote' ? 'none' : 'upvote'));
+                {% comment %} button.data('vote-status', (voteStatus === 'upvote' ? 'none' : 'upvote')); {% endcomment %}
                 $("#error-" + imageId).text("");
             },
             error: function (xhr) {
@@ -147,9 +162,9 @@
         var button = $(event.target);
         var voteStatus = button.data('vote-status');
 
-        if (button.hasClass('btn-disabled') || voteStatus === 'none') {
+        {% comment %} if (button.hasClass('btn-disabled') || voteStatus === 'none') {
             return;
-        }
+        } {% endcomment %}
 
         $.ajax({
             url: "{% url 'downvote-image' 0 %}".replace("0", imageId),
