@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('gallery', '0003_post_alter_user_options_user_date_joined_user_groups_and_more'),
     ]

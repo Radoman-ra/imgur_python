@@ -1,17 +1,16 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .forms import UserRegistrationForm
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Image, Vote
-from .forms import ImageUploadForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
+from .forms import ImageUploadForm
+from .forms import UserRegistrationForm
+from .models import Image, Vote
+import os
 
 
 def register(request):
@@ -27,7 +26,6 @@ def register(request):
 
 
 def login_view(request):
-
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -120,8 +118,13 @@ def downvote_image(request, image_id):
 def delete_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
     if request.user == image.user:
+        if image.image:
+            image_path = image.image.path
+            if os.path.isfile(image_path):
+                os.remove(image_path)
         image.delete()
         return JsonResponse({"success": True})
+
     return JsonResponse(
         {"error": "You do not have permission to delete this image."}, status=403
     )

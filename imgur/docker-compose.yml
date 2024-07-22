@@ -5,10 +5,10 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: qwerty
-      MYSQL_DATABASE: imgur_db
-      MYSQL_USER: mysql
-      MYSQL_PASSWORD: qwerty
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -24,11 +24,11 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_NAME: imgur_db
-      DATABASE_USER: mysql
-      DATABASE_PASSWORD: qwerty
-      DATABASE_HOST: db
-      DATABASE_PORT: 3306
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
 
 volumes:
   db_data:
