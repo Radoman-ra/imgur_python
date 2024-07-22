@@ -70,8 +70,8 @@ class Image(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    upvotes = models.IntegerField(default=0)
-    downvotes = models.IntegerField(default=0)
+    upvotes = models.PositiveIntegerField(default=0)
+    downvotes = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -89,13 +89,14 @@ class Post(models.Model):
 class Vote(models.Model):
     UPVOTE = 1
     DOWNVOTE = -1
-
-    VOTE_CHOICES = [(UPVOTE, "Upvote"), (DOWNVOTE, "Downvote")]
+    VOTE_CHOICES = (
+        (UPVOTE, "Upvote"),
+        (DOWNVOTE, "Downvote"),
+    )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
     vote = models.IntegerField(choices=VOTE_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("user", "image")

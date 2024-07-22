@@ -18,7 +18,7 @@ def register(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Регистрация успешна. Теперь вы можете войти.")
+            messages.success(request, "Registration successful. You can now log in.")
             return redirect("login")
     else:
         form = UserRegistrationForm()
@@ -36,9 +36,9 @@ def login_view(request):
                 login(request, user)
                 return redirect("home")
             else:
-                messages.error(request, "Неправильный email или пароль.")
+                messages.error(request, "Invalid email or password.")
         else:
-            messages.error(request, "Неправильный email или пароль.")
+            messages.error(request, "Invalid email or password.")
     form = AuthenticationForm()
     return render(request, "auth/login.html", {"form": form})
 
@@ -55,7 +55,6 @@ def home(request):
         form = ImageUploadForm()
 
     images = Image.objects.all().order_by("-uploaded_at")
-
     return render(request, "home.html", {"images": images, "form": form})
 
 
@@ -65,50 +64,56 @@ def logout_view(request):
 
 
 @login_required
+@require_POST
 def upvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
-    vote, created = Vote.objects.get_or_create(
-        user=request.user, image=image, defaults={"vote": Vote.UPVOTE}
-    )
 
-    if not created:
-        if vote.vote != Vote.UPVOTE:
+    if image.user == request.user:
+        return JsonResponse({"error": "You cannot upvote your own image"}, status=400)
+
+    vote, created = Vote.objects.get_or_create(user=request.user, image=image)
+
+    if created:
+        vote.vote = Vote.UPVOTE
+        image.upvotes += 1
+    else:
+        if vote.vote == Vote.UPVOTE:
+            image.upvotes -= 1
+            vote.delete()
+        else:
             image.downvotes -= 1
             image.upvotes += 1
             vote.vote = Vote.UPVOTE
-            vote.save()
-        else:
-            return JsonResponse(
-                {"error": "You have already upvoted this image"}, status=400
-            )
-    else:
-        image.upvotes += 1
 
     image.save()
+    vote.save()
     return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
 
 
 @login_required
+@require_POST
 def downvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
-    vote, created = Vote.objects.get_or_create(
-        user=request.user, image=image, defaults={"vote": Vote.DOWNVOTE}
-    )
 
-    if not created:
-        if vote.vote != Vote.DOWNVOTE:
+    if image.user == request.user:
+        return JsonResponse({"error": "You cannot downvote your own image"}, status=400)
+
+    vote, created = Vote.objects.get_or_create(user=request.user, image=image)
+
+    if created:
+        vote.vote = Vote.DOWNVOTE
+        image.downvotes += 1
+    else:
+        if vote.vote == Vote.DOWNVOTE:
+            image.downvotes -= 1
+            vote.delete()
+        else:
             image.upvotes -= 1
             image.downvotes += 1
             vote.vote = Vote.DOWNVOTE
-            vote.save()
-        else:
-            return JsonResponse(
-                {"error": "You have already downvoted this image"}, status=400
-            )
-    else:
-        image.downvotes += 1
 
     image.save()
+    vote.save()
     return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
 
 
