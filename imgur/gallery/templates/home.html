@@ -39,6 +39,18 @@
             pointer-events: none;
             opacity: 0.5;
         }
+
+        .votes {
+            color: black;
+        }
+
+        .upvoted {
+            color: green;
+        }
+
+        .downvoted {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -73,12 +85,10 @@
                                     <small class="text-muted">Uploaded by {{ image.user.username }}
                                         on {{ image.uploaded_at }}</small>
                                 </p>
-                                <p>
-                                    Votes: {{image.user_vote_status}}
-                                    <span id="votes-{{ image.id }}">{{ image.upvotes }}-{{ image.downvotes }}</span>
+                                <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
+                                    Votes: {{image.upvotes}} - {{image.downvotes}}
                                 </p>
                                 <button class="btn btn-success {% if image.user == user %}btn-disabled{% endif %}" onclick="upvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Upvote</button>
-
                                 <button class="btn btn-danger {% if image.user == user %}btn-disabled{% endif %}" onclick="downvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Downvote</button>
                                 <p class="error" id="error-{{ image.id }}"></p>
                             </div>
@@ -117,6 +127,17 @@
 <script>
     var csrfToken = "{{ csrf_token }}";
 
+    $(document).ready(function() {
+        $('.votes').each(function() {
+            var voteStatus = $(this).data('vote-status');
+            if (voteStatus === 'upvote') {
+                $(this).addClass('upvoted');
+            } else if (voteStatus === 'downvote') {
+                $(this).addClass('downvoted');
+            }
+        });
+    });
+
     function openImageModal(cardElement) {
         var imageId = $(cardElement).data('image-id');
         $.ajax({
@@ -134,11 +155,7 @@
     function upvote(event, imageId) {
         event.stopPropagation();
         var button = $(event.target);
-        {% comment %} var voteStatus = button.data('vote-status'); {% endcomment %}
-
-        {% comment %} if (button.hasClass('btn-disabled') || voteStatus === 'none') {
-            return;
-        } {% endcomment %}
+        var voteStatus = button.data('vote-status');
 
         $.ajax({
             url: "{% url 'upvote-image' 0 %}".replace("0", imageId),
@@ -147,8 +164,14 @@
                 csrfmiddlewaretoken: csrfToken
             },
             success: function (data) {
-                $("#votes-" + imageId).text(data.upvotes + "-" + data.downvotes);
-                {% comment %} button.data('vote-status', (voteStatus === 'upvote' ? 'none' : 'upvote')); {% endcomment %}
+                var voteElement = $("#votes-" + imageId);
+                voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
+                voteElement.removeClass('upvoted downvoted');
+                if (data.user_vote_status === 'upvote') {
+                    voteElement.addClass('upvoted');
+                } else if (data.user_vote_status === 'downvote') {
+                    voteElement.addClass('downvoted');
+                }
                 $("#error-" + imageId).text("");
             },
             error: function (xhr) {
@@ -162,10 +185,6 @@
         var button = $(event.target);
         var voteStatus = button.data('vote-status');
 
-        {% comment %} if (button.hasClass('btn-disabled') || voteStatus === 'none') {
-            return;
-        } {% endcomment %}
-
         $.ajax({
             url: "{% url 'downvote-image' 0 %}".replace("0", imageId),
             method: "POST",
@@ -173,8 +192,14 @@
                 csrfmiddlewaretoken: csrfToken
             },
             success: function (data) {
-                $("#votes-" + imageId).text(data.upvotes + "-" + data.downvotes);
-                button.data('vote-status', (voteStatus === 'downvote' ? 'none' : 'downvote'));
+                var voteElement = $("#votes-" + imageId);
+                voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
+                voteElement.removeClass('upvoted downvoted');
+                if (data.user_vote_status === 'upvote') {
+                    voteElement.addClass('upvoted');
+                } else if (data.user_vote_status === 'downvote') {
+                    voteElement.addClass('downvoted');
+                }
                 $("#error-" + imageId).text("");
             },
             error: function (xhr) {
