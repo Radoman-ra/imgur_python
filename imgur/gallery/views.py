@@ -6,7 +6,6 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
 from .forms import ImageUploadForm
 from .forms import UserRegistrationForm
 from .models import Image, Vote
@@ -67,26 +66,25 @@ def logout_view(request):
 @require_POST
 def upvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
-
     if image.user == request.user:
         return JsonResponse({"error": "You cannot upvote your own image"}, status=400)
 
     vote, created = Vote.objects.get_or_create(user=request.user, image=image)
-
     if created:
-        vote.vote = Vote.UPVOTE
         image.upvotes += 1
+        vote.vote = Vote.UPVOTE
     else:
         if vote.vote == Vote.UPVOTE:
             image.upvotes -= 1
             vote.delete()
         else:
-            image.downvotes -= 1
+            if vote.vote == Vote.DOWNVOTE:
+                image.downvotes -= 1
             image.upvotes += 1
             vote.vote = Vote.UPVOTE
+            vote.save()
 
     image.save()
-    vote.save()
     return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
 
 
@@ -94,26 +92,25 @@ def upvote_image(request, image_id):
 @require_POST
 def downvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
-
     if image.user == request.user:
         return JsonResponse({"error": "You cannot downvote your own image"}, status=400)
 
     vote, created = Vote.objects.get_or_create(user=request.user, image=image)
-
     if created:
-        vote.vote = Vote.DOWNVOTE
         image.downvotes += 1
+        vote.vote = Vote.DOWNVOTE
     else:
         if vote.vote == Vote.DOWNVOTE:
             image.downvotes -= 1
             vote.delete()
         else:
-            image.upvotes -= 1
+            if vote.vote == Vote.UPVOTE:
+                image.upvotes -= 1
             image.downvotes += 1
             vote.vote = Vote.DOWNVOTE
+            vote.save()
 
     image.save()
-    vote.save()
     return JsonResponse({"upvotes": image.upvotes, "downvotes": image.downvotes})
 
 

@@ -116,27 +116,13 @@
 <script>
     var csrfToken = "{{ csrf_token }}";
 
-    function openImageModal(cardElement) {
-        var imageId = $(cardElement).data('image-id');
-        $.ajax({
-            url: "{% url 'image-detail' 0 %}".replace("0", imageId),
-            success: function (data) {
-                $("#modal-content").html(data);
-                $("#imageModal").modal("show");
-            },
-            error: function () {
-                alert("Failed to load image details.");
-            }
-        });
-    }
-
     function upvote(event, imageId) {
         event.stopPropagation();
         var button = $(event.target);
         var voteStatus = button.data('vote-status');
 
         if (button.hasClass('btn-disabled') || voteStatus === 'none') {
-            return; // Prevent action if button is disabled or no vote status
+            return;
         }
 
         $.ajax({
@@ -162,7 +148,7 @@
         var voteStatus = button.data('vote-status');
 
         if (button.hasClass('btn-disabled') || voteStatus === 'none') {
-            return; // Prevent action if button is disabled or no vote status
+            return;
         }
 
         $.ajax({

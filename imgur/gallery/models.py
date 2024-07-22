@@ -65,11 +65,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Image(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="images/")
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to="images/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     upvotes = models.PositiveIntegerField(default=0)
     downvotes = models.PositiveIntegerField(default=0)
 
@@ -87,16 +87,16 @@ class Post(models.Model):
 
 
 class Vote(models.Model):
-    UPVOTE = 1
-    DOWNVOTE = -1
-    VOTE_CHOICES = (
+    UPVOTE = "upvote"
+    DOWNVOTE = "downvote"
+    VOTE_CHOICES = [
         (UPVOTE, "Upvote"),
         (DOWNVOTE, "Downvote"),
-    )
+    ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
-    vote = models.IntegerField(choices=VOTE_CHOICES)
+    vote = models.CharField(max_length=8, choices=VOTE_CHOICES)
 
     class Meta:
         unique_together = ("user", "image")
