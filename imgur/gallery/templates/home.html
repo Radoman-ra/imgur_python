@@ -145,6 +145,7 @@
             success: function (data) {
                 $("#modal-content").html(data);
                 $("#imageModal").modal("show");
+                console.log(localStorage.getItem("access_token"))
             },
             error: function () {
                 alert("Failed to load image details.");

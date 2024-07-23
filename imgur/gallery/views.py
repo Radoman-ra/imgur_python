@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,6 +9,11 @@ from .forms import ImageUploadForm
 from .forms import UserRegistrationForm
 from .models import Image, Vote
 import os
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 
 def register(request):
@@ -24,6 +28,14 @@ def register(request):
     return render(request, "auth/register.html", {"form": form})
 
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+
+
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -33,7 +45,18 @@ def login_view(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("home")
+                tokens = get_tokens_for_user(user)
+                request.session["access_token"] = tokens["access"]
+                request.session["refresh_token"] = tokens["refresh"]
+                print("Access Token:", tokens["access"])
+                print("Refresh Token:", tokens["refresh"])
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "access": tokens["access"],
+                        "refresh": tokens["refresh"],
+                    }
+                )
             else:
                 messages.error(request, "Invalid email or password.")
         else:
@@ -62,7 +85,8 @@ def logout_view(request):
     return redirect("home")
 
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @require_POST
 def upvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
@@ -74,19 +98,21 @@ def upvote_image(request, image_id):
         image.upvotes += 1
         vote.vote = Vote.UPVOTE
         vote.save()
+        user_vote_status = "upvote"
     else:
         if vote.vote == Vote.UPVOTE:
             image.upvotes -= 1
             vote.delete()
+            user_vote_status = "none"
         else:
             if vote.vote == Vote.DOWNVOTE:
                 image.downvotes -= 1
             image.upvotes += 1
             vote.vote = Vote.UPVOTE
             vote.save()
+            user_vote_status = "upvote"
 
     image.save()
-    user_vote_status = "upvote" if vote.vote == Vote.UPVOTE else "none"
     return JsonResponse(
         {
             "upvotes": image.upvotes,
@@ -96,7 +122,8 @@ def upvote_image(request, image_id):
     )
 
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @require_POST
 def downvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
@@ -108,19 +135,21 @@ def downvote_image(request, image_id):
         image.downvotes += 1
         vote.vote = Vote.DOWNVOTE
         vote.save()
+        user_vote_status = "downvote"
     else:
         if vote.vote == Vote.DOWNVOTE:
             image.downvotes -= 1
             vote.delete()
+            user_vote_status = "none"
         else:
             if vote.vote == Vote.UPVOTE:
                 image.upvotes -= 1
             image.downvotes += 1
             vote.vote = Vote.DOWNVOTE
             vote.save()
+            user_vote_status = "downvote"
 
     image.save()
-    user_vote_status = "downvote" if vote.vote == Vote.DOWNVOTE else "none"
     return JsonResponse(
         {
             "upvotes": image.upvotes,
@@ -130,7 +159,8 @@ def downvote_image(request, image_id):
     )
 
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @require_POST
 @csrf_exempt
 def delete_image(request, image_id):
@@ -153,7 +183,8 @@ def image_detail(request, image_id):
     return render(request, "image_detail.html", {"image": image})
 
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @require_POST
 @csrf_exempt
 def update_image(request, image_id):
@@ -174,7 +205,16 @@ def update_image(request, image_id):
     )
 
 
-@login_required
-def profile(request):
-    user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
-    return render(request, "profile.html", {"user_images": user_images})
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
+        return render(request, "profile.html", {"user_images": user_images})
+        # user_images = Image.objects.filter(user=request.user).ord
+        # er_by("-uploaded_at")
+        # user_images_data = [
+        #     {"id": image.id, "url": image.url, "uploaded_at": image.uploaded_at}
+        #     for image in user_images
+        # ]
+        # return Response({"user_images": user_images_data})

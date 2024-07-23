@@ -5,10 +5,11 @@ from django.urls import path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from gallery.views import (
     home,
     image_detail,
-    profile,
+    ProfileView,
     register,
     login_view,
     logout_view,
@@ -39,7 +40,7 @@ urlpatterns = [
     path("image/<int:image_id>/", image_detail, name="image-detail"),
     path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
     path("image/<int:image_id>/update/", update_image, name="update-image"),
-    path("profile/", profile, name="profile"),
+    path("profile/", ProfileView.as_view(), name="profile"),
     # Authentication views
     path("register/", register, name="register"),
     path("login/", login_view, name="login"),
@@ -59,6 +60,8 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

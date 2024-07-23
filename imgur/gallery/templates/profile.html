@@ -54,6 +54,17 @@
 
 <div class="container mt-4">
     <h1>My Profile</h1>
+    <!-- User Information -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">User Information</h5>
+            <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
+            <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+            <!-- Add more user information here if needed -->
+        </div>
+    </div>
+
+    <!-- User Images -->
     <div class="row">
         {% for image in user_images %}
             <div class="col-md-4">
@@ -66,8 +77,6 @@
                             <small class="text-muted">Uploaded on {{ image.uploaded_at }}</small>
                         </p>
                         <p>Votes: <span id="votes-{{ image.id }}">{{ image.upvotes }}-{{ image.downvotes }}</span></p>
-                        <button class="btn btn-success" onclick="upvote({{ image.id }})">Upvote</button>
-                        <button class="btn btn-danger" onclick="downvote({{ image.id }})">Downvote</button>
                         <p class="error" id="error-{{ image.id }}"></p>
                     </div>
                 </div>
@@ -77,8 +86,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content" id="modal-content">
             <!-- Modal content will be loaded here -->
@@ -90,49 +98,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
+    function getAccessToken() {
+        return localStorage.getItem("access_token");
+    }
     function openImageModal(imageId) {
         $.ajax({
             url: "{% url 'image-detail' 0 %}".replace("0", imageId),
+            headers: {
+                'Authorization': 'Bearer ' + getAccessToken()
+            },
             success: function (data) {
                 $("#modal-content").html(data);
                 $("#imageModal").modal("show");
             },
             error: function () {
                 alert("Failed to load image details.");
-            }
-        });
-    }
-
-    function upvote(imageId) {
-        $.ajax({
-            url: "{% url 'upvote-image' 0 %}".replace("0", imageId),
-            method: "POST",
-            data: {
-                csrfmiddlewaretoken: "{{ csrf_token }}"
-            },
-            success: function (data) {
-                $("#votes-" + imageId).text(data.upvotes + "-" + data.downvotes);
-                $("#error-" + imageId).text("");
-            },
-            error: function (xhr) {
-                $("#error-" + imageId).text(xhr.responseJSON.error);
-            }
-        });
-    }
-
-    function downvote(imageId) {
-        $.ajax({
-            url: "{% url 'downvote-image' 0 %}".replace("0", imageId),
-            method: "POST",
-            data: {
-                csrfmiddlewaretoken: "{{ csrf_token }}"
-            },
-            success: function (data) {
-                $("#votes-" + imageId).text(data.upvotes + "-" + data.downvotes);
-                $("#error-" + imageId).text("");
-            },
-            error: function (xhr) {
-                $("#error-" + imageId).text(xhr.responseJSON.error);
             }
         });
     }
