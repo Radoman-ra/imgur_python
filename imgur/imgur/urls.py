@@ -43,7 +43,6 @@ urlpatterns = [
     path("home_image/<int:image_id>/", image_detail_home, name="image-detail-home"),
     path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
     path("image/<int:image_id>/update/", update_image, name="update-image"),
-    # path("profile/", ProfileView.as_view(), name="profile"),
     path("api/profile/", profile.as_view(), name="profile"),
     # Authentication views
     path("register/", register, name="register"),
@@ -68,5 +67,6 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("profile/", RedirectView.as_view(url="/")),
 ]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

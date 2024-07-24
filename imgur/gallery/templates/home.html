@@ -216,25 +216,23 @@
         const token = localStorage.getItem('access_token');
     
         if (token) {
-            const url = 'api/profile/'; // Пример URL, замените на ваш
-    
+            const url = 'api/profile/'; 
+
             fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Добавьте префикс 'Token '
+                    'Authorization': `Bearer ${token}`, 
                     'Content-Type': 'application/json'
                 }
             })
             .then(response => {
                 if (response.ok) {
-                    // Обработка HTML ответа
-                    return response.text(); // Используем text() для HTML
+                    return response.text(); 
                 } else {
                     throw new Error('Сервер вернул ошибку');
                 }
             })
             .then(html => {
-                // Обновляем содержимое текущей страницы или перенаправляем
                 document.open();
                 document.write(html);
                 document.close();

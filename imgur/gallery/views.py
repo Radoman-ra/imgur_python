@@ -5,17 +5,13 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
-from .decorators import jwt_required
 from .forms import ImageUploadForm
 from .forms import UserRegistrationForm
 from .models import Image, Vote
 import os
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 
 
