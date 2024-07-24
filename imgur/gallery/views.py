@@ -5,6 +5,8 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
+from .decorators import jwt_required
 from .forms import ImageUploadForm
 from .forms import UserRegistrationForm
 from .models import Image, Vote
@@ -14,6 +16,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
+
+
+class profile(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
+        return render(request, "profile.html", {"user_images": user_images})
 
 
 def register(request):
@@ -85,8 +96,7 @@ def logout_view(request):
     return redirect("home")
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@login_required
 @require_POST
 def upvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
@@ -122,8 +132,7 @@ def upvote_image(request, image_id):
     )
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@login_required
 @require_POST
 def downvote_image(request, image_id):
     image = get_object_or_404(Image, id=image_id)
@@ -159,8 +168,7 @@ def downvote_image(request, image_id):
     )
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@login_required
 @require_POST
 @csrf_exempt
 def delete_image(request, image_id):
@@ -183,8 +191,12 @@ def image_detail(request, image_id):
     return render(request, "image_detail.html", {"image": image})
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+def image_detail_home(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    return render(request, "image_detail_home.html", {"image": image})
+
+
+@login_required
 @require_POST
 @csrf_exempt
 def update_image(request, image_id):
@@ -203,18 +215,3 @@ def update_image(request, image_id):
     return JsonResponse(
         {"error": "You do not have permission to update this image."}, status=403
     )
-
-
-class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
-        return render(request, "profile.html", {"user_images": user_images})
-        # user_images = Image.objects.filter(user=request.user).ord
-        # er_by("-uploaded_at")
-        # user_images_data = [
-        #     {"id": image.id, "url": image.url, "uploaded_at": image.uploaded_at}
-        #     for image in user_images
-        # ]
-        # return Response({"user_images": user_images_data})

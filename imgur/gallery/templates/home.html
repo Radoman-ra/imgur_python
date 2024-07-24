@@ -58,7 +58,7 @@
     <a class="navbar-brand" href="#">Imgur Clone</a>
     <div class="navbar-right">
         {% if user.is_authenticated %}
-            <a href="{% url 'profile' %}" class="btn btn-light">Profile</a>
+            <button id="profile-btn" class="btn btn-light">Profile</button>
             <form action="{% url 'logout' %}" method="post" class="form-inline d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-light">Log Out</button>
@@ -88,8 +88,10 @@
                                 <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
                                     Votes: {{image.upvotes}} - {{image.downvotes}}
                                 </p>
-                                <button class="btn btn-success {% if image.user == user %}btn-disabled{% endif %}" onclick="upvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Upvote</button>
-                                <button class="btn btn-danger {% if image.user == user %}btn-disabled{% endif %}" onclick="downvote(event, {{ image.id }})" data-vote-status="{% if user.is_authenticated and image.user == user %}none{% else %}{{ image.user_vote_status }}{% endif %}">Downvote</button>
+                                {% if image.user != user %}
+                                <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
+                                <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
+                                {% endif %}
                                 <p class="error" id="error-{{ image.id }}"></p>
                             </div>
                         </div>
@@ -141,7 +143,7 @@
     function openImageModal(cardElement) {
         var imageId = $(cardElement).data('image-id');
         $.ajax({
-            url: "{% url 'image-detail' 0 %}".replace("0", imageId),
+            url: "{% url 'image-detail-home' 0 %}".replace("0", imageId),
             success: function (data) {
                 $("#modal-content").html(data);
                 $("#imageModal").modal("show");
@@ -180,6 +182,7 @@
             }
         });
     }
+    
 
     function downvote(event, imageId) {
         event.stopPropagation();
@@ -208,6 +211,42 @@
             }
         });
     }
+
+    document.getElementById('profile-btn').addEventListener('click', function() {
+        const token = localStorage.getItem('access_token');
+    
+        if (token) {
+            const url = 'api/profile/'; // Пример URL, замените на ваш
+    
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Добавьте префикс 'Token '
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Обработка HTML ответа
+                    return response.text(); // Используем text() для HTML
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            })
+            .then(html => {
+                // Обновляем содержимое текущей страницы или перенаправляем
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        } else {
+            console.log('Токен не найден в localStorage');
+        }
+    });
+    
 </script>
 </body>
 </html>

@@ -6,10 +6,11 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.views.generic.base import RedirectView
 from gallery.views import (
     home,
     image_detail,
-    ProfileView,
+    profile,
     register,
     login_view,
     logout_view,
@@ -17,6 +18,7 @@ from gallery.views import (
     downvote_image,
     delete_image,
     update_image,
+    image_detail_home,
 )
 
 # API schema view configuration
@@ -38,9 +40,11 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", home, name="home"),
     path("image/<int:image_id>/", image_detail, name="image-detail"),
+    path("home_image/<int:image_id>/", image_detail_home, name="image-detail-home"),
     path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
     path("image/<int:image_id>/update/", update_image, name="update-image"),
-    path("profile/", ProfileView.as_view(), name="profile"),
+    # path("profile/", ProfileView.as_view(), name="profile"),
+    path("api/profile/", profile.as_view(), name="profile"),
     # Authentication views
     path("register/", register, name="register"),
     path("login/", login_view, name="login"),
@@ -62,6 +66,7 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("profile/", RedirectView.as_view(url="/")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

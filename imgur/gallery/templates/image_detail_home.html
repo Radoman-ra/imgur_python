@@ -1,0 +1,79 @@
+<!-- image_detail_home.html -->
+<div class="modal-header">
+    <h5 class="modal-title">{{ image.title }}</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <img src="{{ image.image.url }}" class="img-fluid" alt="{{ image.title }}"/>
+    <p>{{ image.description }}</p>
+    <p>Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</p>
+    <p>Votes: <span id="upvotes-{{ image.id }}">{{ image.upvotes }}</span> - <span id="downvotes-{{ image.id }}">{{ image.downvotes }}</span></p>
+    {% if request.user != image.user %}
+        <button class="btn btn-success" onclick="upvote(event, {{ image.id }})">Upvote</button>
+        <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})">Downvote</button>
+        <p class="error" id="error-{{ image.id }}"></p>
+    {% endif %}
+</div>
+
+<script>
+function upvote(event, imageId) {
+    event.stopPropagation();
+    fetch(`/image/${imageId}/upvote/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('upvotes-' + imageId).innerText = data.upvotes;
+            document.getElementById('downvotes-' + imageId).innerText = data.downvotes;
+            document.getElementById('error-' + imageId).innerText = '';
+        } else {
+            document.getElementById('error-' + imageId).innerText = data.error;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function downvote(event, imageId) {
+    event.stopPropagation();
+    fetch(`/image/${imageId}/downvote/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('upvotes-' + imageId).innerText = data.upvotes;
+            document.getElementById('downvotes-' + imageId).innerText = data.downvotes;
+            document.getElementById('error-' + imageId).innerText = '';
+        } else {
+            document.getElementById('error-' + imageId).innerText = data.error;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

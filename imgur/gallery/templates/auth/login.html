@@ -106,9 +106,6 @@
                 localStorage.setItem('access_token', result.access);
                 localStorage.setItem('refresh_token', result.refresh);
                 window.location.href = '/';
-                console.log(result)
-                alert(result.access)
-                alert(result.refresh)
             } else {
                 const messagesElement = document.getElementById('messages');
                 messagesElement.innerHTML = '<li class="error">Invalid email or password.</li>';
