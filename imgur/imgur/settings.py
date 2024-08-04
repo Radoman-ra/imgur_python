@@ -60,6 +60,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "gallery.middleware.JWTCookieMiddleware",
+    "gallery.middleware.UnauthorizedRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "imgur.urls"

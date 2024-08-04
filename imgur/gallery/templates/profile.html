@@ -54,13 +54,19 @@
 
 <div class="container mt-4">
     <h1>My Profile</h1>
-    <!-- User Information -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">User Information</h5>
-            <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
-            <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-            <!-- Add more user information here if needed -->
+    <div class="row">
+        <!-- User Information -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">User Information</h5>
+                        <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
+                        <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#uploadModal">Create Post</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -85,7 +91,28 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Upload Image Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Details Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content" id="modal-content">
@@ -101,6 +128,7 @@
     function getAccessToken() {
         return localStorage.getItem("access_token");
     }
+
     function openImageModal(imageId) {
         $.ajax({
             url: "{% url 'image-detail' 0 %}".replace("0", imageId),

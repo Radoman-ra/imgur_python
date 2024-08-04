@@ -7,41 +7,93 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
     <style>
         body {
-            background-color: #f5f5f5;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         .navbar {
-            background-color: #2f2f2f;
+            background-color: #333;
+            padding: 1rem;
         }
 
         .navbar-brand {
             color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-item .nav-link {
+            color: #fff;
+            margin-left: 1rem;
+        }
+
+        .navbar-nav .nav-item .nav-link:hover {
+            color: #ddd;
+        }
+
+        .container {
+            margin-top: 2rem;
         }
 
         .card {
+            position: relative;
+            overflow: hidden;
+            border: none;
+            border-radius: 0.5rem;
             margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            will-change: transform, box-shadow;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .card img {
-            max-height: 300px;
+            width: 100%;
+            height: auto;
             object-fit: cover;
+            transition: opacity 0.2s ease-in-out;
+            will-change: opacity;
         }
 
-        .error {
-            color: red;
+        .card-body {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            will-change: opacity, visibility;
         }
 
-        .navbar-right {
-            margin-left: auto;
+        .card:hover .card-body {
+            opacity: 1;
+            visibility: visible;
         }
 
-        .btn-disabled {
-            pointer-events: none;
-            opacity: 0.5;
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
         }
 
         .votes {
-            color: black;
+            color: white;
+            font-size: 0.9rem;
+            transition: color 0.2s ease-in-out;
+            will-change: color;
         }
 
         .upvoted {
@@ -51,47 +103,94 @@
         .downvoted {
             color: red;
         }
+
+        .vote-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .vote-buttons button {
+            border: none;
+            padding: 5px 10px;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            will-change: background-color;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .modal-content {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="#">Imgur Clone</a>
-    <div class="navbar-right">
+    <ul class="navbar-nav ml-auto">
         {% if user.is_authenticated %}
-        <a href="{% url 'profile' %}" id="profile-btn" class="btn btn-light">Profile</a>
-            <form action="{% url 'logout' %}" method="post" class="form-inline d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-light">Log Out</button>
-            </form>
+            <li class="nav-item">
+                <a href="{% url 'profile' %}" class="nav-link">Profile</a>
+            </li>
+            <li class="nav-item">
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-light">Log Out</button>
+                </form>
+            </li>
         {% else %}
-            <a href="{% url 'login' %}" class="btn btn-light">Log In</a>
-            <a href="{% url 'register' %}" class="btn btn-light">Register</a>
+            <li class="nav-item">
+                <a href="{% url 'login' %}" class="nav-link">Log In</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'register' %}" class="nav-link">Register</a>
+            </li>
         {% endif %}
-    </div>
+    </ul>
 </nav>
 
-<div class="container mt-4">
+<div class="container">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="row">
                 {% for image in images %}
-                    <div class="col-md-4">
+                    <div class="col-md-4 col-sm-6 mb-4">
                         <div class="card" data-image-id="{{ image.id }}" onclick="openImageModal(this)">
                             <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}"/>
                             <div class="card-body">
                                 <h5 class="card-title">{{ image.title }}</h5>
                                 <p class="card-text">{{ image.description }}</p>
                                 <p class="card-text">
-                                    <small class="text-muted">Uploaded by {{ image.user.username }}
-                                        on {{ image.uploaded_at }}</small>
+                                    <small class="text-muted">Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</small>
                                 </p>
                                 <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
                                     Votes: {{image.upvotes}} - {{image.downvotes}}
                                 </p>
                                 {% if user.is_authenticated %}
                                     {% if image.user != user %}
-                                        <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
-                                        <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
+                                        <div class="vote-buttons">
+                                            <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
+                                            <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
+                                        </div>
                                     {% endif %}
                                     <p class="error" id="error-{{ image.id }}"></p>
                                 {% endif %}
@@ -101,24 +200,11 @@
                 {% endfor %}
             </div>
         </div>
-        {% if user.is_authenticated %}
-            <div class="col-md-4">
-                <h2>Upload Image</h2>
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </form>
-            </div>
-        {% else %}
-            <p>Please <a href="{% url 'login' %}">login</a> to upload images.</p>
-        {% endif %}
     </div>
 </div>
 
-<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" id="modal-content">
             <!-- Modal content will be loaded here -->
         </div>
@@ -149,7 +235,6 @@
             success: function (data) {
                 $("#modal-content").html(data);
                 $("#imageModal").modal("show");
-                console.log(localStorage.getItem("access_token"))
             },
             error: function () {
                 alert("Failed to load image details.");
@@ -159,9 +244,6 @@
 
     function upvote(event, imageId) {
         event.stopPropagation();
-        var button = $(event.target);
-        var voteStatus = button.data('vote-status');
-
         $.ajax({
             url: "{% url 'upvote-image' 0 %}".replace("0", imageId),
             method: "POST",
@@ -169,14 +251,7 @@
                 csrfmiddlewaretoken: csrfToken
             },
             success: function (data) {
-                var voteElement = $("#votes-" + imageId);
-                voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
-                voteElement.removeClass('upvoted downvoted');
-                if (data.user_vote_status === 'upvote') {
-                    voteElement.addClass('upvoted');
-                } else if (data.user_vote_status === 'downvote') {
-                    voteElement.addClass('downvoted');
-                }
+                updateVoteStatus(imageId, data);
                 $("#error-" + imageId).text("");
             },
             error: function (xhr) {
@@ -184,13 +259,9 @@
             }
         });
     }
-    
 
     function downvote(event, imageId) {
         event.stopPropagation();
-        var button = $(event.target);
-        var voteStatus = button.data('vote-status');
-
         $.ajax({
             url: "{% url 'downvote-image' 0 %}".replace("0", imageId),
             method: "POST",
@@ -198,14 +269,7 @@
                 csrfmiddlewaretoken: csrfToken
             },
             success: function (data) {
-                var voteElement = $("#votes-" + imageId);
-                voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
-                voteElement.removeClass('upvoted downvoted');
-                if (data.user_vote_status === 'upvote') {
-                    voteElement.addClass('upvoted');
-                } else if (data.user_vote_status === 'downvote') {
-                    voteElement.addClass('downvoted');
-                }
+                updateVoteStatus(imageId, data);
                 $("#error-" + imageId).text("");
             },
             error: function (xhr) {
@@ -213,64 +277,17 @@
             }
         });
     }
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        // Разбиваем документ.cookie на массив отдельных cookie
-        const cookies = document.cookie.split(';');
-        
-        // Итерируем по всем cookie
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i];
-            // Удаляем начальные пробелы
-            while (cookie.charAt(0) === ' ') {
-                cookie = cookie.substring(1);
-            }
-            // Проверяем, начинается ли cookie с искомого имени
-            if (cookie.indexOf(nameEQ) === 0) {
-                // Возвращаем значение cookie
-                return cookie.substring(nameEQ.length, cookie.length);
-            }
-        }
-        // Если cookie не найдена, возвращаем null
-        return null;
-    }
-    
-    
 
-    {% comment %} document.getElementById('profile-btn').addEventListener('click', function() {
-        const token = getCookie('access_token'); 
-        console.log(token)
-        if (token) {
-            const url = 'api/profile/';
-    
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('Сервер вернул ошибку');
-                }
-            })
-            .then(html => {
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-            });
-        } else {
-            console.log('Токен не найден в куки');
+    function updateVoteStatus(imageId, data) {
+        var voteElement = $("#votes-" + imageId);
+        voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
+        voteElement.removeClass('upvoted downvoted');
+        if (data.user_vote_status === 'upvote') {
+            voteElement.addClass('upvoted');
+        } else if (data.user_vote_status === 'downvote') {
+            voteElement.addClass('downvoted');
         }
-    }); {% endcomment %}
-    
-    
+    }
 </script>
 </body>
 </html>

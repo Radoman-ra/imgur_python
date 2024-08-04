@@ -24,7 +24,25 @@ class ProfileView(APIView):
 
     def get(self, request):
         user_images = Image.objects.filter(user=request.user).order_by("-uploaded_at")
-        return render(request, "profile.html", {"user_images": user_images})
+        form = ImageUploadForm()
+        return render(
+            request, "profile.html", {"user_images": user_images, "form": form}
+        )
+
+    def post(self, request):
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            image = form.save(commit=False)
+            image.user = request.user
+            image.save()
+            return redirect("profile")
+        else:
+            user_images = Image.objects.filter(user=request.user).order_by(
+                "-uploaded_at"
+            )
+            return render(
+                request, "profile.html", {"user_images": user_images, "form": form}
+            )
 
 
 def register(request):
@@ -79,18 +97,8 @@ def login_view(request):
 
 
 def home(request):
-    if request.method == "POST":
-        form = ImageUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            image = form.save(commit=False)
-            image.user = request.user
-            image.save()
-            return redirect("home")
-    else:
-        form = ImageUploadForm()
-
     images = Image.objects.all().order_by("-uploaded_at")
-    return render(request, "home.html", {"images": images, "form": form})
+    return render(request, "home.html", {"images": images})
 
 
 def logout_view(request):
