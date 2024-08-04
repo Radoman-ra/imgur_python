@@ -10,10 +10,12 @@
     <p>{{ image.description }}</p>
     <p>Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</p>
     <p>Votes: <span id="upvotes-{{ image.id }}">{{ image.upvotes }}</span> - <span id="downvotes-{{ image.id }}">{{ image.downvotes }}</span></p>
+    {% if user.is_authenticated %}
     {% if request.user != image.user %}
         <button class="btn btn-success" onclick="upvote(event, {{ image.id }})">Upvote</button>
         <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})">Downvote</button>
         <p class="error" id="error-{{ image.id }}"></p>
+    {% endif %}
     {% endif %}
 </div>
 

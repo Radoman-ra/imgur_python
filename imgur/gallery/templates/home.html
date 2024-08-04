@@ -88,11 +88,13 @@
                                 <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
                                     Votes: {{image.upvotes}} - {{image.downvotes}}
                                 </p>
-                                {% if image.user != user %}
-                                <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
-                                <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
+                                {% if user.is_authenticated %}
+                                    {% if image.user != user %}
+                                        <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
+                                        <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
+                                    {% endif %}
+                                    <p class="error" id="error-{{ image.id }}"></p>
                                 {% endif %}
-                                <p class="error" id="error-{{ image.id }}"></p>
                             </div>
                         </div>
                     </div>

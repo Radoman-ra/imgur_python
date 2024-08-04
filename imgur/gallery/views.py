@@ -15,6 +15,8 @@ from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
 from .decorators import jwt_required
 from django.middleware.csrf import get_token
+from rest_framework.response import Response
+from rest_framework import status
 
 
 class ProfileView(APIView):
@@ -96,94 +98,105 @@ def logout_view(request):
     return redirect("home")
 
 
-@login_required
-@require_POST
-def upvote_image(request, image_id):
-    image = get_object_or_404(Image, id=image_id)
-    if image.user == request.user:
-        return JsonResponse({"error": "You cannot upvote your own image"}, status=400)
+class UpvoteImageView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    vote, created = Vote.objects.get_or_create(user=request.user, image=image)
-    if created:
-        image.upvotes += 1
-        vote.vote = Vote.UPVOTE
-        vote.save()
-        user_vote_status = "upvote"
-    else:
-        if vote.vote == Vote.UPVOTE:
-            image.upvotes -= 1
-            vote.delete()
-            user_vote_status = "none"
-        else:
-            if vote.vote == Vote.DOWNVOTE:
-                image.downvotes -= 1
+    def post(self, request, image_id):
+        image = get_object_or_404(Image, id=image_id)
+        if image.user == request.user:
+            return Response(
+                {"error": "You cannot upvote your own image"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        vote, created = Vote.objects.get_or_create(user=request.user, image=image)
+        if created:
             image.upvotes += 1
             vote.vote = Vote.UPVOTE
             vote.save()
             user_vote_status = "upvote"
-
-    image.save()
-    return JsonResponse(
-        {
-            "upvotes": image.upvotes,
-            "downvotes": image.downvotes,
-            "user_vote_status": user_vote_status,
-        }
-    )
-
-
-@login_required
-@require_POST
-def downvote_image(request, image_id):
-    image = get_object_or_404(Image, id=image_id)
-    if image.user == request.user:
-        return JsonResponse({"error": "You cannot downvote your own image"}, status=400)
-
-    vote, created = Vote.objects.get_or_create(user=request.user, image=image)
-    if created:
-        image.downvotes += 1
-        vote.vote = Vote.DOWNVOTE
-        vote.save()
-        user_vote_status = "downvote"
-    else:
-        if vote.vote == Vote.DOWNVOTE:
-            image.downvotes -= 1
-            vote.delete()
-            user_vote_status = "none"
         else:
             if vote.vote == Vote.UPVOTE:
                 image.upvotes -= 1
+                vote.delete()
+                user_vote_status = "none"
+            else:
+                if vote.vote == Vote.DOWNVOTE:
+                    image.downvotes -= 1
+                image.upvotes += 1
+                vote.vote = Vote.UPVOTE
+                vote.save()
+                user_vote_status = "upvote"
+
+        image.save()
+        return Response(
+            {
+                "upvotes": image.upvotes,
+                "downvotes": image.downvotes,
+                "user_vote_status": user_vote_status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class DownvoteImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, image_id):
+        image = get_object_or_404(Image, id=image_id)
+        if image.user == request.user:
+            return Response(
+                {"error": "You cannot downvote your own image"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        vote, created = Vote.objects.get_or_create(user=request.user, image=image)
+        if created:
             image.downvotes += 1
             vote.vote = Vote.DOWNVOTE
             vote.save()
             user_vote_status = "downvote"
+        else:
+            if vote.vote == Vote.DOWNVOTE:
+                image.downvotes -= 1
+                vote.delete()
+                user_vote_status = "none"
+            else:
+                if vote.vote == Vote.UPVOTE:
+                    image.upvotes -= 1
+                image.downvotes += 1
+                vote.vote = Vote.DOWNVOTE
+                vote.save()
+                user_vote_status = "downvote"
 
-    image.save()
-    return JsonResponse(
-        {
-            "upvotes": image.upvotes,
-            "downvotes": image.downvotes,
-            "user_vote_status": user_vote_status,
-        }
-    )
+        image.save()
+        return Response(
+            {
+                "upvotes": image.upvotes,
+                "downvotes": image.downvotes,
+                "user_vote_status": user_vote_status,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
-@login_required
-@require_POST
-@csrf_exempt
-def delete_image(request, image_id):
-    image = get_object_or_404(Image, id=image_id)
-    if request.user == image.user:
-        if image.image:
-            image_path = image.image.path
-            if os.path.isfile(image_path):
-                os.remove(image_path)
-        image.delete()
-        return JsonResponse({"success": True})
+class DeleteImageView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    return JsonResponse(
-        {"error": "You do not have permission to delete this image."}, status=403
-    )
+    def post(self, request, image_id):
+        image = get_object_or_404(Image, id=image_id)
+        if request.user == image.user:
+            if image.image:
+                image_path = image.image.path
+                if os.path.isfile(image_path):
+                    os.remove(image_path)
+            image.delete()
+            return Response({"success": True}, status=status.HTTP_200_OK)
+
+        return Response(
+            {"error": "You do not have permission to delete this image."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
 
 def image_detail(request, image_id):
@@ -191,28 +204,33 @@ def image_detail(request, image_id):
     return render(request, "image_detail.html", {"image": image})
 
 
-@jwt_required
 def image_detail_home(request, image_id):
     image = get_object_or_404(Image, id=image_id)
     return render(request, "image_detail_home.html", {"image": image})
 
 
-@login_required
-@require_POST
-@csrf_exempt
-def update_image(request, image_id):
-    image = get_object_or_404(Image, id=image_id)
-    if request.user == image.user:
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        if title:
-            image.title = title
-        if description:
-            image.description = description
-        image.save()
-        return JsonResponse(
-            {"success": True, "title": image.title, "description": image.description}
+class UpdateImageView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, image_id):
+        image = get_object_or_404(Image, id=image_id)
+        if request.user == image.user:
+            title = request.POST.get("title")
+            description = request.POST.get("description")
+            if title:
+                image.title = title
+            if description:
+                image.description = description
+            image.save()
+            return Response(
+                {
+                    "success": True,
+                    "title": image.title,
+                    "description": image.description,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"error": "You do not have permission to update this image."},
+            status=status.HTTP_403_FORBIDDEN,
         )
-    return JsonResponse(
-        {"error": "You do not have permission to update this image."}, status=403
-    )

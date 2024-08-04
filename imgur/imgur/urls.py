@@ -14,10 +14,10 @@ from gallery.views import (
     register,
     login_view,
     logout_view,
-    upvote_image,
-    downvote_image,
-    delete_image,
-    update_image,
+    UpvoteImageView,
+    DownvoteImageView,
+    DeleteImageView,
+    UpdateImageView,
     image_detail_home,
 )
 
@@ -41,16 +41,22 @@ urlpatterns = [
     path("", home, name="home"),
     path("image/<int:image_id>/", image_detail, name="image-detail"),
     path("home_image/<int:image_id>/", image_detail_home, name="image-detail-home"),
-    path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
-    path("image/<int:image_id>/update/", update_image, name="update-image"),
+    path(
+        "image/<int:image_id>/delete/", DeleteImageView.as_view(), name="delete-image"
+    ),
+    path(
+        "image/<int:image_id>/update/", UpdateImageView.as_view(), name="update-image"
+    ),
     path("api/profile/", ProfileView.as_view(), name="profile"),
     # Authentication views
     path("register/", register, name="register"),
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     # Voting views
-    path("upvote/<int:image_id>/", upvote_image, name="upvote-image"),
-    path("downvote/<int:image_id>/", downvote_image, name="downvote-image"),
+    path("upvote/<int:image_id>/", UpvoteImageView.as_view(), name="upvote-image"),
+    path(
+        "downvote/<int:image_id>/", DownvoteImageView.as_view(), name="downvote-image"
+    ),
     # API schema views
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
