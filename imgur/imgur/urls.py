@@ -10,7 +10,7 @@ from django.views.generic.base import RedirectView
 from gallery.views import (
     home,
     image_detail,
-    profile,
+    ProfileView,
     register,
     login_view,
     logout_view,
@@ -43,7 +43,7 @@ urlpatterns = [
     path("home_image/<int:image_id>/", image_detail_home, name="image-detail-home"),
     path("image/<int:image_id>/delete/", delete_image, name="delete-image"),
     path("image/<int:image_id>/update/", update_image, name="update-image"),
-    path("api/profile/", profile.as_view(), name="profile"),
+    path("api/profile/", ProfileView.as_view(), name="profile"),
     # Authentication views
     path("register/", register, name="register"),
     path("login/", login_view, name="login"),

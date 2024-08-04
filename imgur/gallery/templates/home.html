@@ -58,7 +58,7 @@
     <a class="navbar-brand" href="#">Imgur Clone</a>
     <div class="navbar-right">
         {% if user.is_authenticated %}
-            <button id="profile-btn" class="btn btn-light">Profile</button>
+        <a href="{% url 'profile' %}" id="profile-btn" class="btn btn-light">Profile</a>
             <form action="{% url 'logout' %}" method="post" class="form-inline d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-light">Log Out</button>
@@ -211,23 +211,46 @@
             }
         });
     }
-
-    document.getElementById('profile-btn').addEventListener('click', function() {
-        const token = localStorage.getItem('access_token');
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        // Разбиваем документ.cookie на массив отдельных cookie
+        const cookies = document.cookie.split(';');
+        
+        // Итерируем по всем cookie
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i];
+            // Удаляем начальные пробелы
+            while (cookie.charAt(0) === ' ') {
+                cookie = cookie.substring(1);
+            }
+            // Проверяем, начинается ли cookie с искомого имени
+            if (cookie.indexOf(nameEQ) === 0) {
+                // Возвращаем значение cookie
+                return cookie.substring(nameEQ.length, cookie.length);
+            }
+        }
+        // Если cookie не найдена, возвращаем null
+        return null;
+    }
     
-        if (token) {
-            const url = 'api/profile/'; 
+    
 
+    {% comment %} document.getElementById('profile-btn').addEventListener('click', function() {
+        const token = getCookie('access_token'); 
+        console.log(token)
+        if (token) {
+            const url = 'api/profile/';
+    
             fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`, 
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             })
             .then(response => {
                 if (response.ok) {
-                    return response.text(); 
+                    return response.text();
                 } else {
                     throw new Error('Сервер вернул ошибку');
                 }
@@ -241,9 +264,10 @@
                 console.error('Ошибка:', error);
             });
         } else {
-            console.log('Токен не найден в localStorage');
+            console.log('Токен не найден в куки');
         }
-    });
+    }); {% endcomment %}
+    
     
 </script>
 </body>

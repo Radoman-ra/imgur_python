@@ -80,10 +80,10 @@
 <body>
     <div class="container">
         <h2>Вход</h2>
-        <form id="login-form" method="post">
+        <form id="login-form" method="post" action="{% url 'login' %}">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit">Войти</button>
+            <button type="submit">Log In</button>
         </form>
         <ul class="messages" id="messages"></ul>
     </div>
@@ -99,18 +99,20 @@
                 },
                 body: formData
             });
-
+        
             const result = await response.json();
-
+        
             if (result.success) {
-                localStorage.setItem('access_token', result.access);
-                localStorage.setItem('refresh_token', result.refresh);
+                document.cookie = `access_token=${result.access}; path=/; httponly`;
+                document.cookie = `refresh_token=${result.refresh}; path=/; httponly`;
                 window.location.href = '/';
             } else {
                 const messagesElement = document.getElementById('messages');
-                messagesElement.innerHTML = '<li class="error">Invalid email or password.</li>';
+                messagesElement.innerHTML = '<li class="error">Invalid username or password.</li>';
             }
         });
+        
     </script>
+    
 </body>
 </html>

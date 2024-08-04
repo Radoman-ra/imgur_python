@@ -13,9 +13,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.decorators import login_required
+from .decorators import jwt_required
+from django.middleware.csrf import get_token
 
 
-class profile(APIView):
+class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -43,33 +45,35 @@ def get_tokens_for_user(user):
     }
 
 
+@csrf_exempt
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get("username")
+            username = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
-            user = authenticate(request, email=email, password=password)
+            user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 tokens = get_tokens_for_user(user)
-                request.session["access_token"] = tokens["access"]
-                request.session["refresh_token"] = tokens["refresh"]
-                print("Access Token:", tokens["access"])
-                print("Refresh Token:", tokens["refresh"])
-                return JsonResponse(
+                response = JsonResponse(
                     {
                         "success": True,
                         "access": tokens["access"],
                         "refresh": tokens["refresh"],
                     }
                 )
+                response.set_cookie("access_token", tokens["access"], httponly=True)
+                response.set_cookie("refresh_token", tokens["refresh"], httponly=True)
+                return response
             else:
-                messages.error(request, "Invalid email or password.")
+                messages.error(request, "Invalid username or password.")
         else:
-            messages.error(request, "Invalid email or password.")
-    form = AuthenticationForm()
-    return render(request, "auth/login.html", {"form": form})
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+    csrf_token = get_token(request)
+    return render(request, "auth/login.html", {"form": form, "csrf_token": csrf_token})
 
 
 def home(request):
@@ -187,6 +191,7 @@ def image_detail(request, image_id):
     return render(request, "image_detail.html", {"image": image})
 
 
+@jwt_required
 def image_detail_home(request, image_id):
     image = get_object_or_404(Image, id=image_id)
     return render(request, "image_detail_home.html", {"image": image})
