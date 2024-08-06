@@ -56,6 +56,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "gallery.middleware.JWTCookieMiddleware",
     "gallery.middleware.UnauthorizedRedirectMiddleware",
+    "gallery.middleware.RefreshTokenMiddleware",
 ]
 
 ROOT_URLCONF = "imgur.urls"

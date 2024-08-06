@@ -17,6 +17,23 @@ from .decorators import jwt_required
 from django.middleware.csrf import get_token
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+def refresh_jwt_tokens(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
 
 
 class ProfileView(APIView):
@@ -57,14 +74,6 @@ def register(request):
     return render(request, "auth/register.html", {"form": form})
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
-
-
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
@@ -75,7 +84,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                tokens = get_tokens_for_user(user)
+                tokens = refresh_jwt_tokens(user)
                 response = JsonResponse(
                     {
                         "success": True,
@@ -137,14 +146,20 @@ class UpvoteImageView(APIView):
                 user_vote_status = "upvote"
 
         image.save()
-        return Response(
+        tokens = refresh_jwt_tokens(request.user)
+        response = Response(
             {
                 "upvotes": image.upvotes,
                 "downvotes": image.downvotes,
                 "user_vote_status": user_vote_status,
+                "access": tokens["access"],
+                "refresh": tokens["refresh"],
             },
             status=status.HTTP_200_OK,
         )
+        response.set_cookie("access_token", tokens["access"], httponly=True)
+        response.set_cookie("refresh_token", tokens["refresh"], httponly=True)
+        return response
 
 
 class DownvoteImageView(APIView):
@@ -178,14 +193,24 @@ class DownvoteImageView(APIView):
                 user_vote_status = "downvote"
 
         image.save()
-        return Response(
+
+        tokens = get_tokens_for_user(request.user)
+
+        response = Response(
             {
                 "upvotes": image.upvotes,
                 "downvotes": image.downvotes,
                 "user_vote_status": user_vote_status,
+                "access": tokens["access"],
+                "refresh": tokens["refresh"],
             },
             status=status.HTTP_200_OK,
         )
+
+        response.set_cookie("access_token", tokens["access"], httponly=True)
+        response.set_cookie("refresh_token", tokens["refresh"], httponly=True)
+
+        return response
 
 
 class DeleteImageView(APIView):
