@@ -15,8 +15,10 @@ from pathlib import Path
 
 import environ
 
+root = environ.Path(__file__) - 2
+
 env = environ.Env()
-environ.Env.read_env()
+env.read_env(root(".env"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,17 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-6hm$7-ie1nn6$)kx$$iak%+z+q*q3*g)-_%8g3eyzen=7z+kx^"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = [
-    "6208-188-146-92-185.ngrok-free.app",
-    "127.0.0.1",
-    "localhost",
-]
-
+DEBUG = env.bool("DEBUG", default=False)
 # Application definition
 
 INSTALLED_APPS = [
@@ -173,4 +168,8 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
-CSRF_TRUSTED_ORIGINS = ["https://6208-188-146-92-185.ngrok-free.app"]
+
+
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
