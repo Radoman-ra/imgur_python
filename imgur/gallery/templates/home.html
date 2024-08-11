@@ -184,7 +184,7 @@
                                     <small class="text-muted">Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</small>
                                 </p>
                                 <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
-                                    Votes: {{image.upvotes}} - {{image.downvotes}}
+                                    Votes: {{ image.upvotes }} - {{ image.downvotes }}
                                 </p>
                                 {% if user.is_authenticated %}
                                     {% if image.user != user %}
@@ -220,11 +220,17 @@
 
     $(document).ready(function() {
         $('.votes').each(function() {
-            var voteStatus = $(this).data('vote-status');
+            var voteStatus = $(this).data('vote-status'); // Получаем текущий статус голосования
+            var voteElement = $(this);
+            
+            // Очищаем классы
+            voteElement.removeClass('upvoted downvoted');
+            
+            // Применяем класс в зависимости от статуса
             if (voteStatus === 'upvote') {
-                $(this).addClass('upvoted');
+                voteElement.addClass('upvoted');
             } else if (voteStatus === 'downvote') {
-                $(this).addClass('downvoted');
+                voteElement.addClass('downvoted');
             }
         });
     });
