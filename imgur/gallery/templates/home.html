@@ -6,7 +6,7 @@
     <title>Imgur Clone</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
     <style>
-        /* Existing styles */
+        /* Стили из кода 1 */
         body {
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
@@ -228,7 +228,7 @@
 
     $(document).ready(function() {
         $('.votes').each(function() {
-            var voteStatus = $(this).data('vote-status'); 
+            var voteStatus = $(this).data('vote-status');
             var voteElement = $(this);
 
             voteElement.removeClass('upvoted downvoted');
@@ -295,8 +295,6 @@
 
     function updateVoteStatus(imageId, data) {
         var voteElement = $("#votes-" + imageId);
-        voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
-
         voteElement.removeClass('upvoted downvoted');
 
         if (data.user_vote_status === 'upvote') {
@@ -304,10 +302,12 @@
         } else if (data.user_vote_status === 'downvote') {
             voteElement.addClass('downvoted');
         }
+
+        voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
     }
 
     function updateTokens(data) {
-        csrfToken = data.csrf_token;
+        csrfToken = data.csrfToken;
     }
 </script>
 </body>

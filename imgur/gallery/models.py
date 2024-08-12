@@ -10,9 +10,9 @@ from django.utils import timezone
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if not email:
-            raise ValueError("Users must have an email address")
+            raise ValueError("Пользователи должны иметь адрес электронной почты")
         if not username:
-            raise ValueError("Users must have a username")
+            raise ValueError("Пользователи должны иметь имя пользователя")
 
         user = self.model(
             email=self.normalize_email(email),
@@ -42,8 +42,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(default=timezone.now)
+    is_staff = models.BooleanField(default=False)  # Added for admin staff
+    date_joined = models.DateTimeField(default=timezone.now)  # Added for tracking
 
     objects = UserManager()
 
