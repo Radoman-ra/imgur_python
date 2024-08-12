@@ -4,20 +4,18 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from .forms import ImageUploadForm
-from .forms import UserRegistrationForm
-from .models import Image, Vote
-import os
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from django.contrib.auth.decorators import login_required
-from .decorators import jwt_required
 from django.middleware.csrf import get_token
+
+from .forms import ImageUploadForm, UserRegistrationForm
+from .models import Image, Vote
+
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+
+import os
 
 
 def refresh_jwt_tokens(user):

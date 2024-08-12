@@ -6,7 +6,7 @@
     <title>Imgur Clone</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
     <style>
-        /* Your existing styles */
+        /* Existing styles */
         body {
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
@@ -35,17 +35,23 @@
         }
 
         .container {
+            column-count: 3; /* Masonry effect with columns */
+            column-gap: 15px;
+            padding: 0;
             margin-top: 2rem;
         }
 
         .card {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 15px;
             position: relative;
             overflow: hidden;
             border: none;
             border-radius: 0.5rem;
-            margin-bottom: 20px;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             will-change: transform, box-shadow;
+            break-inside: avoid; /* Prevent column breaks inside cards */
         }
 
         .card:hover {
@@ -142,6 +148,19 @@
             border-radius: 0.5rem;
             overflow: hidden;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                column-count: 2;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                column-count: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -170,38 +189,27 @@
 </nav>
 
 <div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="row">
-                {% for image in images %}
-                    <div class="col-md-4 col-sm-6 mb-4">
-                        <div class="card" data-image-id="{{ image.id }}" onclick="openImageModal(this)">
-                            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}"/>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ image.title }}</h5>
-                                <p class="card-text">{{ image.description }}</p>
-                                <p class="card-text">
-                                    <small class="text-muted">Uploaded by {{ image.user.username }} on {{ image.uploaded_at }}</small>
-                                </p>
-                                <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
-                                    Votes: {{ image.upvotes }} - {{ image.downvotes }}
-                                </p>
-                                {% if user.is_authenticated %}
-                                    {% if image.user != user %}
-                                        <div class="vote-buttons">
-                                            <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
-                                            <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
-                                        </div>
-                                    {% endif %}
-                                    <p class="error" id="error-{{ image.id }}"></p>
-                                {% endif %}
-                            </div>
+    {% for image in images %}
+        <div class="card" data-image-id="{{ image.id }}" onclick="openImageModal(this)">
+            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}"/>
+            <div class="card-body">
+                <h5 class="card-title">{{ image.title }}</h5>
+                <p class="card-text">{{ image.description }}</p>
+                <p class="votes" id="votes-{{ image.id }}" data-vote-status="{{ image.user_vote_status }}">
+                    Votes: {{ image.upvotes }} - {{ image.downvotes }}
+                </p>
+                {% if user.is_authenticated %}
+                    {% if image.user != user %}
+                        <div class="vote-buttons">
+                            <button class="btn btn-success" onclick="upvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Upvote</button>
+                            <button class="btn btn-danger" onclick="downvote(event, {{ image.id }})" data-vote-status="{{ image.user_vote_status }}">Downvote</button>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endif %}
+                    <p class="error" id="error-{{ image.id }}"></p>
+                {% endif %}
             </div>
         </div>
-    </div>
+    {% endfor %}
 </div>
 
 <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
@@ -220,13 +228,11 @@
 
     $(document).ready(function() {
         $('.votes').each(function() {
-            var voteStatus = $(this).data('vote-status'); // Получаем текущий статус голосования
+            var voteStatus = $(this).data('vote-status'); 
             var voteElement = $(this);
-            
-            // Очищаем классы
+
             voteElement.removeClass('upvoted downvoted');
-            
-            // Применяем класс в зависимости от статуса
+
             if (voteStatus === 'upvote') {
                 voteElement.addClass('upvoted');
             } else if (voteStatus === 'downvote') {
@@ -290,7 +296,9 @@
     function updateVoteStatus(imageId, data) {
         var voteElement = $("#votes-" + imageId);
         voteElement.text("Votes: " + data.upvotes + " - " + data.downvotes);
+
         voteElement.removeClass('upvoted downvoted');
+
         if (data.user_vote_status === 'upvote') {
             voteElement.addClass('upvoted');
         } else if (data.user_vote_status === 'downvote') {
@@ -299,8 +307,7 @@
     }
 
     function updateTokens(data) {
-        document.cookie = "access_token=" + data.access + "; path=/; HttpOnly";
-        document.cookie = "refresh_token=" + data.refresh + "; path=/; HttpOnly";
+        csrfToken = data.csrf_token;
     }
 </script>
 </body>
