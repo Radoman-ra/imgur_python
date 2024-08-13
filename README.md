@@ -15,7 +15,6 @@ This project is a web service for uploading and sharing images, similar to "Imgu
 ### Image Uploads
 
 - Authenticated users can upload 1-N images per post, each with a title.
-- Posts displayed on the main page with pagination options (25, 50, 100 posts).
 
 ### Voting System
 
@@ -25,11 +24,6 @@ This project is a web service for uploading and sharing images, similar to "Imgu
 ### User Profiles
 
 - Authenticated users can view their own posts and vote counts.
-- Users can post images anonymously if they have an account.
-
-### Post Details
-
-- Each post has a dedicated page accessible via a unique URL (postId).
 
 ## Technical Specifications
 
@@ -45,126 +39,6 @@ This project is a web service for uploading and sharing images, similar to "Imgu
 - MySQL (database)
 - Docker (containerization)
 - JWT Auth (authentication)
-
-## Functionality
-
-### Controllers
-
-1. **AuthController**
-    - `register_user(request)`: Register a new user.
-    - `login_user(request)`: Log in and get JWT token.
-
-2. **ImageController**
-    - `upload_image(request)`: Upload images by authenticated users.
-    - `get_images(request, limit)`: Retrieve images with pagination.
-
-3. **PostController**
-    - `get_post(request, postId)`: Retrieve post details by ID.
-    - `get_user_posts(request)`: Retrieve posts by the authenticated user.
-    - `create_post(request)`: Create a post with images and a title.
-
-4. **VoteController**
-    - `upvote_post(request, postId)`: Upvote a post.
-    - `downvote_post(request, postId)`: Downvote a post.
-
-### Services
-
-1. **AuthService**
-    - `create_user(data)`: Create a new user.
-    - `authenticate_user(credentials)`: Authenticate user and generate JWT tokens.
-
-2. **ImageService**
-    - `save_image(data, user)`: Save images and associate them with the user.
-    - `fetch_images(limit)`: Fetch images for the main page.
-
-3. **PostService**
-    - `get_post_details(postId)`: Retrieve post details.
-    - `get_user_posts(user)`: Retrieve user’s posts.
-
-4. **VoteService**
-    - `register_vote(postId, user, vote_type)`: Register a vote for a post.
-
-### Models and DTOs
-
-1. **User**
-    - `id`: Integer (primary key)
-    - `username`: String
-    - `password`: String (hashed)
-    - `email`: String
-
-2. **Image**
-    - `id`: Integer (primary key)
-    - `title`: String
-    - `image_path`: String
-    - `postId`: ForeignKey (Post)
-
-3. **Post**
-    - `id`: Integer (primary key)
-    - `title`: String
-    - `description`: String
-    - `images`: ManyToManyField (Image)
-    - `upvotes`: Integer (default=0)
-    - `downvotes`: Integer (default=0)
-    - `userId`: ForeignKey (User)
-
-4. **Vote**
-    - `id`: Integer (primary key)
-    - `userId`: ForeignKey (User)
-    - `postId`: ForeignKey (Post)
-    - `vote_type`: String (choices: '1', '-1')
-
-### DTOs
-
-1. **UserDTO**
-    - `username`: String
-    - `email`: String
-
-2. **ImageDTO**
-    - `id`: Integer
-    - `title`: String
-    - `image_path`: String
-
-3. **PostDTO**
-    - `id`: Integer
-    - `title`: String
-    - `images`: List[ImageDTO]
-    - `upvotes`: Integer
-    - `downvotes`: Integer
-
-4. **VoteDTO**
-    - `postId`: Integer
-    - `vote_type`: String
-
-### API Endpoints
-
-- `/api/auth/register`: POST - Register a new user.
-- `/api/auth/login`: POST - Login and receive JWT token.
-- `/api/images/upload`: POST - Upload images.
-- `/api/images`: GET - Get images with pagination.
-- `/api/posts/{postId}`: GET - Get post details by ID.
-- `/api/user/posts`: GET - Get posts of the authenticated user.
-- `/api/votes/upvote/{postId}`: POST - Upvote a post.
-- `/api/votes/downvote/{postId}`: POST - Downvote a post.
-
-### URL Configuration
-
-- `/admin/`: Django admin interface.
-- `/`: Main page displaying all images.
-- `/image/<int:image_id>/`: Detailed view of an image.
-- `/home_image/<int:image_id>/`: Alternate detailed view of an image.
-- `/image/<int:image_id>/delete/`: Delete an image.
-- `/image/<int:image_id>/update/`: Update an image.
-- `/api/profile/`: User profile page.
-- `/register/`: User registration.
-- `/login/`: User login.
-- `/logout/`: User logout.
-- `/upvote/<int:image_id>/`: Upvote an image.
-- `/downvote/<int:image_id>/`: Downvote an image.
-- `/swagger/`: Swagger UI for API documentation.
-- `/redoc/`: ReDoc UI for API documentation.
-- `/api/token/`: JWT token obtain endpoint.
-- `/api/token/refresh/`: JWT token refresh endpoint.
-- `/profile/`: Redirects to home page.
 
 ## How to Use
 
